@@ -6,23 +6,27 @@
 #
 # Libs
 #
-import requests
 from bs4 import BeautifulSoup
-import pymongo
 import datetime
+import logging
+import pymongo
+import requests
+
 
 #
 # Config
 #
-# user_id : 3752692
-# Authorization: Bearer pELr-AWC7gQDtaGaEF5HCFTWPgIHVEK3mTcLR1LZClZdZ0OE8MOFtcw7gktCYQKV
-base_url = "http://api.genius.com"
+log_file = 'RapRapesYourEars.log'
+log_level = logging.DEBUG
+base_url = 'http://api.genius.com'
 headers = {'Authorization': 'Bearer pELr-AWC7gQDtaGaEF5HCFTWPgIHVEK3mTcLR1LZClZdZ0OE8MOFtcw7gktCYQKV'}
+
 
 #
 # Functions
 #
 def get_lyrics_from_song_id(song_id) :
+	logging.info('Collect lyrics from song : ' + song_id)
 	song_url = base_url + '/songs/' + song_id
 	json = requests.get(song_url, headers = headers).json()
 	# Check if this song already exists in database
@@ -55,6 +59,7 @@ def get_lyrics_from_song_id(song_id) :
 
 
 def get_songs_from_album_url(url) :
+	logging.info('Collect songs from album : ' + url)
 	page = requests.get(url)
 	html = BeautifulSoup(page.text, 'html.parser')
 	children = html.find_all('ul', class_ = 'song_list')[0].children
@@ -64,19 +69,15 @@ def get_songs_from_album_url(url) :
 
 def main() :
 	global db
+	# Init logs
+	logging.basicConfig(filename = log_file, filemode = 'a+', format = '%(asctime)s  |  %(levelname)s  |  %(message)s', datefmt = '%m/%d/%Y %I:%M:%S %p', level = log_level)
+	logging.info('Start')
 	client = pymongo.MongoClient()
-	# TODO : Create database "RapRapesYourEars" if it does'nt exist
 	db = client.RapRapesYourEars
-	# lyrics = db.Lyrics
-	# get_lyrics_from_song_id('603271')
-	#  Damso - Amnésie
-	# get_lyrics_from_song_id('2685480')
-	# Damso - Paris c'est loin
-	# get_lyrics_from_song_id('2822523')
-	# IAM - L'école du micro d'argent
-	# get_lyrics_from_song_id('59307')
 	# IAM - L'école du micro d'argent
 	get_songs_from_album_url('http://genius.com/albums/Iam/L-ecole-du-micro-d-argent')
+	logging.info('End')
+
 
 #
 # Main
