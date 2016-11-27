@@ -33,7 +33,7 @@ def get_lyrics_from_song_id(song_id) :
 			'name' : json['response']['song']['title'],
 			'url' : json['response']['song']['url'],
 			'release_date' : json['response']['song']['release_date'],
-			'album_id' : json['response']['song']['album']['id'],
+			'album_id' : json['response']['song']['album']['id'] if json['response']['song']['album'] != None else None,
 			'creation_date' : datetime.datetime.utcnow()
 		}
 		# Save song in database
@@ -53,29 +53,30 @@ def get_lyrics_from_song_id(song_id) :
 		# Save lyrics in database
 		db.lyrics.insert_one(lyric)
 
+
+def get_songs_from_album_url(url) :
+	page = requests.get(url)
+	html = BeautifulSoup(page.text, 'html.parser')
+	children = html.find_all('ul', class_ = 'song_list')[0].children
+	for child in children :
+		if child.name != None :
+			get_lyrics_from_song_id(child['data-id'])
+
 def main() :
 	global db
 	client = pymongo.MongoClient()
+	# TODO : Create database "RapRapesYourEars" if it does'nt exist
 	db = client.RapRapesYourEars
 	# lyrics = db.Lyrics
 	# get_lyrics_from_song_id('603271')
 	#  Damso - Amnésie
 	# get_lyrics_from_song_id('2685480')
 	# Damso - Paris c'est loin
-	get_lyrics_from_song_id('2822523')
-	# search_url = base_url + '/search'
-	# data = {'q' : song_title}
-	# response = requests.get(search_url, data = data, headers = headers)
-	# json = response.json()
-	# song_info = None
-	# for hit in json['response']['hits'] :
-		# if hit['result']['primary_artist']['name'] == artist_name :
-			# song_info = hit
-			# break
-	# if song_info:
-		# song_api_path = song_info['result']['api_path']
-		# print song_api_path
-		# lyrics_from_song_api_path(song_api_path)
+	# get_lyrics_from_song_id('2822523')
+	# IAM - L'école du micro d'argent
+	# get_lyrics_from_song_id('59307')
+	# IAM - L'école du micro d'argent
+	get_songs_from_album_url('http://genius.com/albums/Iam/L-ecole-du-micro-d-argent')
 
 #
 # Main
