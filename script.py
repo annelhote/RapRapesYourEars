@@ -3,12 +3,15 @@
 # Execution example : python script.py
 # Tuto : https://bigishdata.com/2016/09/27/getting-song-lyrics-from-geniuss-api-scraping/
 
+
 #
 # Libs
 #
 from bs4 import BeautifulSoup
 import datetime
+import json
 import logging
+import os
 import pymongo
 import requests
 
@@ -19,7 +22,6 @@ import requests
 log_file = 'RapRapesYourEars.log'
 log_level = logging.DEBUG
 base_url = 'http://api.genius.com'
-headers = {'Authorization': 'Bearer pELr-AWC7gQDtaGaEF5HCFTWPgIHVEK3mTcLR1LZClZdZ0OE8MOFtcw7gktCYQKV'}
 
 
 #
@@ -28,6 +30,7 @@ headers = {'Authorization': 'Bearer pELr-AWC7gQDtaGaEF5HCFTWPgIHVEK3mTcLR1LZClZd
 def get_lyrics_from_song_id(song_id) :
 	logging.info('Collect lyrics from song : ' + song_id)
 	song_url = base_url + '/songs/' + song_id
+	headers = {'Authorization': 'Bearer ' + conf['bearer']}
 	json = requests.get(song_url, headers = headers).json()
 	# Check if this song already exists in database
 	if db.song.find({'_id' : song_id}).count() == 0 :
@@ -68,10 +71,20 @@ def get_songs_from_album_url(url) :
 			get_lyrics_from_song_id(child['data-id'])
 
 def main() :
-	global db
+	global conf, db
 	# Init logs
 	logging.basicConfig(filename = log_file, filemode = 'a+', format = '%(asctime)s  |  %(levelname)s  |  %(message)s', datefmt = '%m/%d/%Y %I:%M:%S %p', level = log_level)
 	logging.info('Start')
+	# Load conf file
+	conf_file = os.path.join('conf', 'conf.json')
+	if os.path.exists(conf_file) :
+		with open(conf_file) as f :
+			conf = json.load(f)
+		logging.info('Conf file loaded')
+	else :
+		logging.error('No conf file provided or wrong path : ' + conf_file)
+		sys.exit(0)
+	# Connect to Mongo DB
 	client = pymongo.MongoClient()
 	db = client.RapRapesYourEars
 	# IAM - L'école du micro d'argent
