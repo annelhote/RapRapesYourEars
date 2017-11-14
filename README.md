@@ -5,6 +5,8 @@ Study the evolution of the languages used into french rap lyrics.
 ## Installation
 `> mkvirtualenv RapRapesYourEars`
 
+`> workon RapRapesYourEars`
+
 `> pip install bs4`
 
 `> pip install pymongo`
