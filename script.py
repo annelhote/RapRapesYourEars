@@ -74,6 +74,36 @@ def get_songs_from_artist_id(artist_id) :
 		else :
 			params["page"] = response["response"]["next_page"]
 
+def save_artist_into_db(artist_id) :
+	# Get artist info through the Genius API
+	artist_url = base_url + '/artists/' + str(artist_id)
+	json = requests.get(artist_url, headers=headers).json()
+	# Check if artist is not already into the database
+	if db.artist.find({'_id' : artist_id}).count() == 0 :
+		# Create artist as a JSON Object
+		artist = {
+			'_id' : json['response']['artist']['id'],
+			'name' : json['response']['artist']['name'],
+			'alternate_names' : json['response']['artist']['alternate_names'],
+			'api_path' : json['response']['artist']['api_path'],
+			'description' : json['response']['artist']['description'],
+			'facebook_name' : json['response']['artist']['facebook_name'],
+			'followers_count' : json['response']['artist']['followers_count'],
+			'header_image_url' : json['response']['artist']['header_image_url'],
+			'image_url' : json['response']['artist']['image_url'],
+			'instagram_name' : json['response']['artist']['instagram_name'],
+			'is_meme_verified' : json['response']['artist']['is_meme_verified'],
+			'is_verified' : json['response']['artist']['is_verified'],
+			'twitter_name' : json['response']['artist']['twitter_name'],
+			'url' : json['response']['artist']['url'],
+			'iq' : json['response']['artist']['iq'],
+			'creation_date' : datetime.datetime.utcnow()
+		}
+		# Save artist in database
+		logging.debug('Save artist ' + str(json['response']['artist']['name']) + ' into database.')
+		db.artist.insert_one(artist)
+
+
 def get_artist_id_from_artist_name(artist_name) :
 	search_url = base_url + '/search'
 	params = {'q': artist_name}
@@ -82,6 +112,7 @@ def get_artist_id_from_artist_name(artist_name) :
 	for hit in response["response"]["hits"] :
 		if hit["result"]["primary_artist"]["name"].lower() == artist_name.lower() :
 			artist_id =  hit["result"]["primary_artist"]["id"]
+			return artist_id
 	return artist_id
 
 def main() :
@@ -109,6 +140,7 @@ def main() :
 		logging.error('This artist name doesn\'t exist in Genius.com')
 		exit()
 	else :
+		save_artist_into_db(artist_id)
 		get_songs_from_artist_id(artist_id)
 	logging.info('End')
 
