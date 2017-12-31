@@ -28,24 +28,46 @@ artist_name = "IAM"
 # Functions
 #
 def get_lyrics_from_song_id(song_id) :
-	logging.debug('Collect lyrics from song : ' + str(song_id))
 	song_url = base_url + '/songs/' + str(song_id)
 	json = requests.get(song_url, headers = headers).json()
 	# Check if this song already exists in database
 	if db.song.find({'_id' : song_id}).count() == 0 :
+		logging.debug('Save song ' + str(song_id) + ' into database.')
 		# Create song as a JSON Object
 		song = {
 			'_id' : song_id,
 			'name' : json['response']['song']['title'],
-			'url' : json['response']['song']['url'],
+			'annotation_count' : json['response']['song']['annotation_count'],
+			'api_path' : json['response']['song']['api_path'],
+			'description' : json['response']['song']['description'],
+			'embed_content' : json['response']['song']['embed_content'],
+			'featured_video' : json['response']['song']['featured_video'],
+			'full_title' : json['response']['song']['full_title'],
+			'header_image_thumbnail_url' : json['response']['song']['header_image_thumbnail_url'],
+			'header_image_url' : json['response']['song']['header_image_url'],
+			'lyrics_owner_id' : json['response']['song']['lyrics_owner_id'],
+			'lyrics_state' : json['response']['song']['lyrics_state'],
+			'path' : json['response']['song']['path'],
+			'pyongs_count' : json['response']['song']['pyongs_count'],
+			'recording_location' : json['response']['song']['recording_location'],
 			'release_date' : json['response']['song']['release_date'],
+			'song_art_image_thumbnail_url' : json['response']['song']['song_art_image_thumbnail_url'],
+			'song_art_image_url' : json['response']['song']['song_art_image_url'],
+			'stats' : json['response']['song']['stats'],
+			'title' : json['response']['song']['title'],
+			'title_with_featured' : json['response']['song']['title_with_featured'],
+			'url' : json['response']['song']['url'],
 			'album_id' : json['response']['song']['album']['id'] if json['response']['song']['album'] != None else None,
+			'youtube' : json['response']['song']['media'][0]['url'] if (len(json['response']['song']['media']) != 0 and json['response']['song']['media'][0]['provider'] == 'youtube') else None,
 			'creation_date' : datetime.datetime.utcnow()
 		}
 		# Save song in database
 		db.song.insert_one(song)
+	else :
+		logging.debug('Song ' + str(song_id) + ' already exists in database.')
 	# Check if these lyrics already exist in database
 	if db.lyrics.find({'_id' : song_id}).count() == 0 :
+		logging.debug('Save lyrics ' + str(song_id) + ' into database.')
 		page = requests.get('http://genius.com' + json['response']['song']['path'])
 		html = BeautifulSoup(page.text, 'html.parser')
 		# Remove script tags that they put in the middle of the lyrics
@@ -58,6 +80,8 @@ def get_lyrics_from_song_id(song_id) :
 		}
 		# Save lyrics in database
 		db.lyrics.insert_one(lyric)
+	else :
+		logging.debug('Lyrics ' + str(song_id) + ' already exist in database.')
 
 def get_songs_from_artist_id(artist_id) :
 	artist_url = base_url + '/artists/' + str(artist_id) + '/songs'
