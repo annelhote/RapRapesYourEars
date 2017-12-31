@@ -142,7 +142,7 @@ def get_artist_id_from_artist_name(artist_name) :
 def main() :
 	global conf, db, headers
 	# Init logs
-	logging.basicConfig(filename = log_file, filemode = 'a+', format = '%(asctime)s  |  %(levelname)s  |  %(message)s', datefmt = '%m/%d/%Y %I:%M:%S %p', level = log_level)
+	logging.basicConfig(filename = log_file, filemode = 'w+', format = '%(asctime)s  |  %(levelname)s  |  %(message)s', datefmt = '%m/%d/%Y %I:%M:%S %p', level = log_level)
 	logging.info('Start')
 	# Load conf file
 	conf_file = os.path.join('conf', 'conf.json')
