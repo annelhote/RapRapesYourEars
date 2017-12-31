@@ -63,6 +63,18 @@ def get_lyrics_from_song_id(song_id) :
 		}
 		# Save song in database
 		db.song.insert_one(song)
+		if (json['response']['song']['album'] != None) and (db.album.find({'_id' : json['response']['song']['album']['id']}).count() == 0) :
+			# Create album as a JSON Object
+			album = {
+				'_id' : json['response']['song']['album']['id'],
+				'name' : json['response']['song']['album']['name'],
+				'api_path' : json['response']['song']['album']['api_path'],
+				'cover_art_url' : json['response']['song']['album']['cover_art_url'],
+				'full_title' : json['response']['song']['album']['full_title'],
+				'url' : json['response']['song']['album']['url']
+			}
+			# Save album into database
+			db.album.insert_one(album)
 	else :
 		logging.debug('Song ' + str(song_id) + ' already exists in database.')
 	# Check if these lyrics already exist in database
@@ -85,18 +97,18 @@ def get_lyrics_from_song_id(song_id) :
 
 def get_songs_from_artist_id(artist_id) :
 	artist_url = base_url + '/artists/' + str(artist_id) + '/songs'
-	params = {"per_page": 50, "page": 1}
+	params = {'per_page': 50, 'page': 1}
 	# Loop over pages
 	while True:
 		response = requests.get(artist_url, params=params, headers=headers).json()
-		songs = response["response"]["songs"]
+		songs = response['response']['songs']
 		logging.debug('Retrieving page ' + str(params['page']) + ' of songs list.')
 		for song in songs:
-			get_lyrics_from_song_id(song["id"])
-		if len(songs) < 50:
+			get_lyrics_from_song_id(song['id'])
+		if response['response']['next_page'] == None :
 			break
 		else :
-			params["page"] = response["response"]["next_page"]
+			params['page'] = response['response']['next_page']
 
 def save_artist_into_db(artist_id) :
 	# Get artist info through the Genius API
@@ -157,6 +169,11 @@ def main() :
 	client = pymongo.MongoClient()
 	db = client.RapRapesYourEars
 	logging.debug('Connected to the Mongo database.')
+	# Drop all tables (artist, song, lyrics and album)
+	db.artist.drop()
+	db.song.drop()
+	db.lyrics.drop()
+	db.album.drop()
 	headers = {'Authorization': 'Bearer ' + conf['bearer']}
 	artist_id = get_artist_id_from_artist_name(artist_name)
 	logging.debug('The artist id for ' + artist_name + ' is : ' + str(artist_id) + '.')
