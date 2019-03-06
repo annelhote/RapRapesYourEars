@@ -12,3 +12,6 @@
 # Conf files
 #
 conf/conf.json
+
+.idea
+venv
