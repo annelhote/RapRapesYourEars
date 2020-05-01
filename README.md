@@ -3,12 +3,11 @@ Study the evolution of the languages used into french rap lyrics.
 
 
 ## Installation
-`> mkvirtualenv RapRapesYourEars`
-
-`> workon RapRapesYourEars`
-
-`> pip install -r requirements.txt`
-
+```bash
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
 ### Setup config
 To get an access token, ask it to Genius on the API-Client page [https://genius.com/api-clients](https://genius.com/api-clients).
@@ -23,11 +22,10 @@ Rename the conf.default.json file into conf.json and place your Genius Access To
 
 
 ### Execute script
-`> cd RapRapesYourEars`
-
-`> workon RapRapesYourEars`
-
-`> python script.py`
+After installation, just run the script like that :
+```bash
+python script.py
+```
 
 
 ## Licenses

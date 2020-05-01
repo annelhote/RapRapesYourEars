@@ -13,5 +13,12 @@
 #
 conf/conf.json
 
+#
+# IDE files
+#
 .idea
+
+#
+# Virtual env files
+#
 venv
